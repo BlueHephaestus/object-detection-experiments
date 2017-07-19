@@ -86,21 +86,6 @@ def train_model(archive_dir, model_dir):
     """
     with h5py.File(archive_dir, "r", chunks=True, compression="gzip") as hf:
 
-        #x_shape = tuple(hf.get("x_shape"))
-        #x_shape = (hf.get("x_shape")[0], 512,512,3)
-        """
-        x = np.memmap("x.dat", dtype="uint8", mode="w+", shape=x_shape)
-
-        memmap_step = 1000
-
-        hf_x = hf.get("x")
-
-        for i in range(0, x_shape[0], memmap_step):
-            #x[i:i+memmap_step] = np.reshape(hf_x[i:i+memmap_step], (-1, 512, 512, 3))
-            x[i:i+memmap_step] = hf_x[i:i+memmap_step]
-            print i
-        """
-
         x = np.array(hf.get("x"))
         y = np.array(hf.get("y")).astype(int)
 
@@ -113,30 +98,21 @@ def train_model(archive_dir, model_dir):
 
         y = to_categorical(y, 2)
 
-        #input_shape = [hf.get("x_shape")[1]]
-        input_shape = [512,512,3]
+        input_shape = [hf.get("x_shape")[1]]
+        #input_shape = [512,512,3]
 
         print "Testing model 1"
         loss = "binary_crossentropy"
         optimizer = Adam()
         regularization_rate = 1e-4
-        epochs = 100
+        epochs = 10
         mini_batch_size=100
 
         model = Sequential()
 
-        model.add(Conv2D(20, (62, 62), strides=(2, 2), padding="valid", input_shape=input_shape, data_format="channels_last", activation="sigmoid", kernel_regularizer=l2(regularization_rate)))
-        model.add(MaxPooling2D(data_format="channels_last"))
-
-        #input 113,113,20
-        model.add(Conv2D(40, (39, 39), strides=(2,2), padding="valid", input_shape=input_shape, data_format="channels_last", activation="sigmoid", kernel_regularizer=l2(regularization_rate)))
-        model.add(MaxPooling2D(data_format="channels_last"))
-        
-        #input 19,19,40 = 14440
-        model.add(Flatten())
-
-        model.add(Dense(2048, activation="sigmoid", kernel_regularizer=l2(regularization_rate)))
-        model.add(Dense(512, activation="sigmoid", kernel_regularizer=l2(regularization_rate)))
+        print input_shape
+        #model.add(Dense(2048, input_shape=input_shape, activation="sigmoid", kernel_regularizer=l2(regularization_rate)))
+        model.add(Dense(512, input_shape=input_shape, activation="sigmoid", kernel_regularizer=l2(regularization_rate)))
         model.add(Dense(128, activation="sigmoid", kernel_regularizer=l2(regularization_rate)))
         model.add(Dense(2, activation="softmax", kernel_regularizer=l2(regularization_rate)))
         model.compile(loss=loss, optimizer=optimizer, metrics=["accuracy"])
@@ -157,9 +133,4 @@ def train_model(archive_dir, model_dir):
         print "Saving Model..."
         model.save("%s.h5" % (model_dir))
 
-
-"""
-Haven't trained/tested this 256-256 model yet
-"""
-
-train_model("samples.h5", "balanced_cnn_type1_detection_model_1")
+train_model("hog_samples.h5", "balanced_type1_detection_model_1")

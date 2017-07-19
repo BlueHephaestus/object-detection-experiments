@@ -6,7 +6,7 @@ sys.path.append("../tuberculosis_project/lira_static")
 import object_detection_handler
 from object_detection_handler import *
 
-a = ObjectDetector("smaller_augmented_samples_type1_detection_model", "../tuberculosis_project/lira/lira2/saved_networks")
+a = ObjectDetector("type1_detection_model_1", "../tuberculosis_project/lira/lira2/saved_networks")
 
 def filepath_gen(file_dir):
     for path in os.walk(file_dir):
@@ -67,8 +67,8 @@ We want to concatenate these and our original negatives such that false positive
 but since this is gonna be a big array, we need to create a memmap which matches the shape of our new negatives.
 So we get the shape of our original negatives, and add the shape of our false positives
 """
-initial_archive_dir = "phase1_smaller_augmented_samples.h5"
-new_archive_dir = "phase2_smaller_augmented_samples.h5"
+initial_archive_dir = "augmented_samples.h5"
+new_archive_dir = "phase2_augmented_samples.h5"
 
 with h5py.File(initial_archive_dir, "r", chunks=True, compression="gzip") as hf:
     x_shape = hf.get("x_shape")
@@ -88,11 +88,11 @@ with h5py.File(initial_archive_dir, "r", chunks=True, compression="gzip") as hf:
             -using a memmap for Y when it is very unnecessary would likely impact performance significantly.
     """
     x_shape = tuple(hf.get("x_shape"))
-    x = np.memmap("x.dat", dtype="uint8", mode="r+", shape=x_shape)
+    x = np.memmap("x.dat", dtype="uint8", mode="r+", shape=(x_shape[0], 262144, 3))
     memmap_step = 1000
     hf_x = hf.get("x")
     for i in range(0, x_shape[0], memmap_step):
-        x[i:i+memmap_step] = hf_x[i:i+memmap_step]
+        x[i:i+memmap_step] = np.reshape(hf_x[i:i+memmap_step], (-1, 262144, 3))
         print i
     y = np.array(hf.get("y"))
 

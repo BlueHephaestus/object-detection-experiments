@@ -1,15 +1,17 @@
 import numpy as np
 import h5py
 
-archive_dir_1 = "smaller_samples.h5"
-archive_dir_2 = "smaller_positive_augmented_samples.h5"
+archive_dir_1 = "positive_augmented_samples.h5"#1
+archive_dir_2 = "samples.h5"#2
 
-combined_archive_dir = "smaller_augmented_samples.h5"
+combined_archive_dir = "augmented_samples.h5"#1+2
 
 with h5py.File(archive_dir_1, "r", chunks=True, compression="gzip") as hf:
     x_shape_1 = tuple(hf.get("x_shape"))
 with h5py.File(archive_dir_2, "r", chunks=True, compression="gzip") as hf:
     x_shape_2 = tuple(hf.get("x_shape"))
+print x_shape_1
+print x_shape_2
 
 combined_n = x_shape_1[0] + x_shape_2[0]
 combined_dims = [combined_n]

@@ -1,8 +1,8 @@
 import numpy as np
 import h5py
 
-initial_archive_dir = "smaller_samples.h5"
-new_archive_dir = "smaller_positive_samples.h5"
+initial_archive_dir = "samples.h5"
+new_archive_dir = "positive_samples.h5"
 
 with h5py.File(initial_archive_dir, "r", chunks=True, compression="gzip") as hf:
     """

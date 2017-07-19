@@ -44,7 +44,7 @@ archive_dir = "samples.h5"
 Dimensions of one x sample, 
     and if we have our samples as rgb or not
 """
-sample_dims = [512, 512, 3]
+sample_dims = [128, 128, 3]
 rgb = True
 
 """

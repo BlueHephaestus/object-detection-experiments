@@ -92,4 +92,4 @@ def get_hog_archive(archive_dir, hog_archive_dir, img_h=512, img_w=512, rgb=True
         hf.create_dataset("y", data=y)
         hf.create_dataset("y_shape", data=y.shape)
 
-get_hog_archive("phase2_smaller_augmented_samples.h5", "hog_samples.h5")
+get_hog_archive("phase2_augmented_samples.h5", "phase2_augmented_hog_samples.h5")

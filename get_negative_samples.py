@@ -107,7 +107,24 @@ img_fnames = [
                 "116000.svs",
                 "115993.svs",
                 "116024.svs",
-                "115921.svs"
+                "115921.svs",
+
+                "115885.svs",
+                "115886.svs",
+                "115887.svs",
+                "115889.svs",
+                "115891.svs",
+                "115894.svs",
+                "115897.svs",
+                "115899.svs",
+                "115901.svs",
+                "115908.svs",
+                "115910.svs",
+                "115913.svs",
+                "115918.svs",
+                "115923.svs",
+                "115931.svs",
+                "115942.svs"
             ]
 
 """
@@ -118,10 +135,10 @@ img_paths = [img_dir + os.sep + img_fname for img_fname in img_fnames]
 """
 Our window size and destination image size after resize
 """
-sub_h = 2048
-sub_w = 2048
-dst_h = 512
-dst_w = 512
+sub_h = 640
+sub_w = 640
+dst_h = 128
+dst_w = 128
 
 """
 Loop through images,
@@ -138,10 +155,10 @@ for img_path in img_paths:
 
     We make sure our step_size is 1/2 our window size
     """
-    win_shape = [2048, 2048]
+    win_shape = [sub_h, sub_w]
     scale = 0.7
-    for (scale_i, resized_img) in pyramid(img, scale=scale, min_shape=win_shape, n=8):
-        for (row_i, col_i, window) in sliding_window(resized_img, step_size=1024, win_shape=win_shape):
+    for (scale_i, resized_img) in pyramid(img, scale=scale, min_shape=win_shape, n=1):
+        for (row_i, col_i, window) in sliding_window(resized_img, step_size=int(sub_h/2.), win_shape=win_shape):
             window = cv2.resize(window, (dst_h, dst_w))
             cv2.imwrite("%s%i.png" % (negatives_dir, i), window)
             i+=1
