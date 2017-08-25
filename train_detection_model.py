@@ -62,11 +62,10 @@ def create_transformation_matrix(theta, sx, sy, dx, dy, top_left_to_center, cent
 
     """
     Create our final transformation matrix by chaining these together in a dot product of the form:
-        res = top_left_to_center * translation * scaling * shearing * rotation * center_to_top_left.
-    This is because if we want to apply them in our order, we would normally get the inverse of the dot product
-        (translation * scaling * shearing * rotation)^-1 ,
-    But since inverses are computationally expensive we instead just flip the order, as that is equivalent in this scenario.
-    We do not flip the order of the normalization transformations, however.
+        res = top_left_to_center * scaling * translation * rotation * center_to_top_left.
+    This is because we want to apply them in our order, rotation -> translation -> scaling. 
+    However if we dot'd them normally, this would happen in the reverse order.
+    So, to counter this, we reverse our order of dot product to be the above.
     """
     T = top_left_to_center.dot(scaling).dot(translation).dot(rotation).dot(center_to_top_left)
     return T
@@ -571,12 +570,71 @@ def train_model(archive_dir, model_dir):
     Assumes our x array has the positive_n samples first, unshuffled,
     and the remaining samples are the negative samples.
     """
-    model1(x,y,input_shape)
-    model2(x,y,input_shape)
-    model3(x,y,input_shape)
-    model4(x,y,input_shape)
-    model5(x,y,input_shape)
-    model6(x,y,input_shape)
+    #model1(x,y,input_shape)
+    #model2(x,y,input_shape)
+    #model3(x,y,input_shape)
+    #model4(x,y,input_shape)
+    #model5(x,y,input_shape)
+    #model6(x,y,input_shape)
+    #mk6(x,y,input_shape)
+
+    sample_n = len(x)
+    positive_n = np.sum(y==1)
+
+    y = to_categorical(y, 2)
+
+    loss = "binary_crossentropy"
+    optimizer = Adam()
+    regularization_rate = 1e-4
+    epochs = 1000
+    batch_size = 100
+
+    model = Sequential()
+    
+    #input 128,128,3
+    model.add(Conv2D(32, (7, 7), strides=(2, 2), padding="same", input_shape=input_shape, data_format="channels_last", activation="relu", kernel_regularizer=l2(regularization_rate)))
+    #input 64,64,32
+    model.add(MaxPooling2D(data_format="channels_last"))
+
+    #input 32,32,32
+    model.add(Conv2D(32, (3, 3), strides=(1, 1), padding="same", data_format="channels_last", activation="relu", kernel_regularizer=l2(regularization_rate)))
+
+    #input 32,32,32
+    model.add(Conv2D(64, (3, 3), strides=(1, 1), padding="same", data_format="channels_last", activation="relu", kernel_regularizer=l2(regularization_rate)))
+    #input 32,32,64
+    model.add(MaxPooling2D(data_format="channels_last"))
+
+    #input 16,16,64
+    model.add(Conv2D(64, (3, 3), strides=(1, 1), padding="same", data_format="channels_last", activation="relu", kernel_regularizer=l2(regularization_rate)))
+
+    #input 16,16,64
+    model.add(Conv2D(64, (3, 3), strides=(1, 1), padding="same", data_format="channels_last", activation="relu", kernel_regularizer=l2(regularization_rate)))
+
+    #input 16,16,64
+    model.add(Conv2D(64, (3, 3), strides=(1, 1), padding="same", data_format="channels_last", activation="relu", kernel_regularizer=l2(regularization_rate)))
+
+    #input 16,16,64
+    model.add(MaxPooling2D(data_format="channels_last"))
+
+    #input 8,8,64
+    model.add(Conv2D(64, (3, 3), strides=(1, 1), padding="same", data_format="channels_last", activation="relu", kernel_regularizer=l2(regularization_rate)))
+
+    #input 8,8,64
+    model.add(AveragePooling2D(pool_size=(8,8), data_format="channels_last"))
+
+    #input 1,1,64
+    model.add(Flatten())
+
+    #input 1*1*64 = 64
+    model.add(Dense(2, activation="softmax", kernel_regularizer=l2(regularization_rate)))
+    model.compile(loss=loss, optimizer=optimizer, metrics=["accuracy"])
+
+    #Use this to check your layer's input and output shapes, for checking your math / calculations / designs
+    print "Layer Input -> Output Shapes:"
+    for layer in model.layers:
+        print layer.input_shape, "->", layer.output_shape
+    model.fit_generator(get_new_balanced_batch(x, y, sample_n, positive_n, batch_size), steps_per_epoch=100, epochs=epochs)
+    #model.fit_generator(get_new_balanced_batch(x, y, sample_n, positive_n), steps_per_epoch=100, epochs=epochs)
 
     predictions = model.predict(x)
     print np.sum(np.argmax(predictions, axis=1)==1)
@@ -589,4 +647,4 @@ def train_model(archive_dir, model_dir):
     print "Saving Model..."
     model.save("%s.h5" % (model_dir))
 
-train_model("augmented_samples.h5", "test")
+train_model("augmented_samples.h5", "type1_detection_model_mk7")
